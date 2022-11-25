@@ -1,0 +1,2 @@
+class HeaderClassificationLevelSetting < ApplicationRecord
+end

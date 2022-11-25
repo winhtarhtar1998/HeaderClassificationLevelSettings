@@ -1,0 +1,2 @@
+class HeaderClassificationDicts < ApplicationRecord
+end
