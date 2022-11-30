@@ -26,7 +26,7 @@ Rails.application.routes.draw do
       post 'header_classification_dicts/create' , to: 'header_classification_dicts#create'
       delete 'header_classification_dicts/:id', to: 'header_classification_dicts#destroy'
       put 'header_classification_dicts/update/:id', to: 'header_classification_dicts#update'
-      
+      get 'header_classification_dicts/toUpdate/:id', to: 'header_classification_dicts#toUpdate'
     end
     end
   

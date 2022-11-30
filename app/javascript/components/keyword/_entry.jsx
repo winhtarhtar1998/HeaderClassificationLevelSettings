@@ -41,7 +41,7 @@ class Entry extends React.Component {
       searchkeyword: this.state.keywords,
       current: 1,
     });
-    if ((e = " ")) {
+    if (e == null) {
       this.setState({
         searchkeyword: this.state.keywords,
       });
@@ -58,7 +58,7 @@ class Entry extends React.Component {
       searchkeyword: this.state.keywords,
       current: 1,
     });
-    if ((e = " ")) {
+    if (e == null) {
       this.setState({
         searchkeyword: this.state.keywords,
       });
@@ -106,11 +106,7 @@ class Entry extends React.Component {
         throw new Error("Network error.");
       })
       .then((data) => {
-        let length = data.keyword;
-        if (Object.keys(length).length <= 0) {
-          this.props.showMessage();
-        } else {
-          console.log("Data", data);
+        if (data.message != "ok") {
           data.keyword.forEach((keyword) => {
             const newEl = {
               key: keyword.id,
@@ -122,6 +118,8 @@ class Entry extends React.Component {
               keywords: [...prevState.keywords, newEl],
             })); //... means copy
           });
+        } else {
+          this.props.showMessage();
         }
       })
       .catch((err) => message.error("Error: " + err));
@@ -145,7 +143,6 @@ class Entry extends React.Component {
 
   // データ設定にForm
   handeldataSet = (values) => {
-    console.log("Values", values);
     this.props.createoreditlevelsetting(values, this.formRef);
   };
 
@@ -380,8 +377,10 @@ class Entry extends React.Component {
             columns={this.column}
             pagination={{
               pageSize: 10,
-              defaultCurrent: this.state.current,
+              showTotal: (total, range) =>
+                `${total}件の中から${range[0]}から${range[1]}を表示`,
             }}
+            total={this.state.searchkeyword.length}
           />
         </Modal>
         <Modal
@@ -409,8 +408,10 @@ class Entry extends React.Component {
             columns={this.column}
             pagination={{
               pageSize: 10,
-              defaultCurrent: this.state.current,
+              showTotal: (total, range) =>
+                `${total}件の中から${range[0]}から${range[1]}を表示`,
             }}
+            total={this.state.searchkeyword.length}
           />
         </Modal>
       </>

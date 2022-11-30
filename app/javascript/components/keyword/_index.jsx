@@ -4,6 +4,7 @@ import "../../bundles/i18n/ja.js";
 import Entry from "./_entry.jsx";
 import ListGP from "./_list.jsx";
 import { message } from "antd";
+import { CSVLink } from "react-csv";
 class Keyword extends React.Component {
   state = {
     levels: [],
@@ -41,14 +42,14 @@ class Keyword extends React.Component {
       },
       body: JSON.stringify(record),
     })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
+      .then((data) => {
+        if (data.ok) {
+          return data.json();
         }
         throw new Error("Network error.");
       })
-      .then((response) => {
-        if (response.message == "ok") {
+      .then((data) => {
+        if (data.message != "ok") {
           this.deletekeyword(record.id);
           this.setState({
             type: "success",
@@ -62,14 +63,7 @@ class Keyword extends React.Component {
             visible: true,
           });
         }
-      })
-      .catch(() =>
-        this.setState({
-          type: "error",
-          message: I18n.t("message.M059"),
-          visible: true,
-        })
-      );
+      });
   };
 
   //一覧に削除データがすぐに表示する
@@ -87,16 +81,32 @@ class Keyword extends React.Component {
 
   // 更新にデータ設定する関数
   editStatus = (record) => {
-    let keywordresult = record.keyword;
-    let resultkeyword = keywordresult.split(/>/);
-    this.formRef.current.setFieldsValue({
-      upperlevelkeyword: resultkeyword[0],
-      lowerlevel_keyword: resultkeyword[1],
-      editid: record.id,
-    });
-    this.setState({
-      editable: true,
-    });
+    let id = record.id;
+    const url = `/api/v1/header_classification_dicts/toUpdate/${id}`;
+    fetch(url)
+      .then((data) => {
+        if (data.ok) {
+          return data.json();
+        }
+      })
+      .then((data) => {
+        if (data.message != "ok") {
+          this.formRef.current.setFieldsValue({
+            upperlevelkeyword: data.upperlevelkeyword,
+            lowerlevel_keyword: data.lowerlevel_keyword,
+            editid: data.id,
+          });
+          this.setState({
+            editable: true,
+          });
+        } else {
+          this.setState({
+            type: "error",
+            message: I18n.t("message.M060"),
+            visible: true,
+          });
+        }
+      });
   };
 
   // 更新する関数
@@ -141,12 +151,14 @@ class Keyword extends React.Component {
             type: "success",
             message: I18n.t("message.M005"),
             visible: true,
+            editable: false,
           });
         } else {
           this.setState({
             type: "error",
             message: I18n.t("message.M058"),
             visible: true,
+            editable: false,
           });
         }
       });
@@ -194,20 +206,27 @@ class Keyword extends React.Component {
         throw new Error("Network error.");
       })
       .then((data) => {
-        data.settings.forEach((level) => {
-          const newEl = {
-            key: level.id,
-            id: level.id,
-            keyword: level.upperlevelkeyword + ">" + level.lowerlevel_keyword,
-          };
-          this.state.showidt = this.state.showidt + 1;
+        if (data.message != "ok") {
+          data.settings.forEach((level) => {
+            const newEl = {
+              key: level.id,
+              id: level.id,
+              keyword: level.upperlevelkeyword + ">" + level.lowerlevel_keyword,
+            };
+            this.state.showidt = this.state.showidt + 1;
 
-          this.setState((prevState) => ({
-            levels: [...prevState.levels, newEl],
-          }));
-        });
-      })
-      .catch((err) => message.error("Error: " + err));
+            this.setState((prevState) => ({
+              levels: [...prevState.levels, newEl],
+            }));
+          });
+        } else {
+          this.setState({
+            type: "error",
+            message: I18n.t("message.M060"),
+            visible: true,
+          });
+        }
+      });
   };
 
   // テーブルにデータ保存する関数
@@ -235,7 +254,7 @@ class Keyword extends React.Component {
         }
       })
       .then((data) => {
-        if (data.message != "ok") {
+        if (data.message != "ok" && data.message != "nok") {
           const newEl = {
             key: data.id,
             id: data.id,
@@ -250,11 +269,19 @@ class Keyword extends React.Component {
             visible: true,
           });
         } else {
-          this.setState({
-            type: "error",
-            message: I18n.t("message.M056"),
-            visible: true,
-          });
+          if (data.message == "nok") {
+            this.setState({
+              type: "error",
+              message: I18n.t("message.M056"),
+              visible: true,
+            });
+          } else {
+            this.setState({
+              type: "error",
+              message: I18n.t("message.M078"),
+              visible: true,
+            });
+          }
         }
       });
     currentForm.current.resetFields();
@@ -274,7 +301,7 @@ class Keyword extends React.Component {
       <>
         <div
           className="site-layout-background"
-          style={{ padding: 24, minHeight: 360 }}
+          // style={{ padding: 24, minHeight: 360 }}
         >
           <Entry
             createoreditlevelsetting={this.createoreditlevelsetting}
@@ -289,6 +316,16 @@ class Keyword extends React.Component {
             showMessage={this.showMessage}
             showErrormessage={this.showErrormessage}
           />
+          <CSVLink
+            filename={"HeaderClassificationLevelSettings.csv"}
+            data={this.state.levels}
+            className="btn btn-primary"
+            onClick={() => {
+              message.success("The file is downloading");
+            }}
+          >
+            Export to CSV
+          </CSVLink>
           <ListGP
             datasource={this.state.levels}
             handleDelete={this.handleDelete}

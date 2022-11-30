@@ -14,10 +14,10 @@
  *= require_self
  */
  .ant-table-thead > tr > th {
-
     background-color: lightgrey !important;
     font-weight: bold !important;
-  
-    text-align: center !important;
-  
+    text-align: center !important; 
+  }
+  .ant-pagination-total-text {
+    margin-right: auto !important;
   }

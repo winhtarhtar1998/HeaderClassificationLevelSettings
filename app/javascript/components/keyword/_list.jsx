@@ -40,10 +40,10 @@ class ListGP extends React.Component {
             </Tooltip>
           </a>
           <Popconfirm
-            title="削除してもよろしいでしょうか？"
+            title={I18n.t("message.F010")}
             onConfirm={() => this.props.handleDelete(record)}
-            okText="Yes"
-            cancelText="No"
+            okText={I18n.t("message.F008")}
+            cancelText={I18n.t("message.F009")}
           >
             <a href="#" type="danger">
               <Tooltip placement="top" title={I18n.t("message.F003")}>
@@ -65,7 +65,10 @@ class ListGP extends React.Component {
         dataSource={this.props.datasource}
         pagination={{
           pageSize: 10,
+          showTotal: (total, range) =>
+            `${total}件の中から${range[0]}から${range[1]}を表示`,
         }}
+        total={this.props.datasource.length}
       />
     );
   }
